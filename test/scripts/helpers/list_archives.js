@@ -1,8 +1,6 @@
-'use strict';
+var should = require('chai').should(); // eslint-disable-line
 
-var should = require('chai').should();
-
-describe('list_archives', function(){
+describe('list_archives', () => {
   var Hexo = require('../../../lib/hexo');
   var hexo = new Hexo(__dirname);
   var Post = hexo.model('Post');
@@ -16,23 +14,21 @@ describe('list_archives', function(){
 
   var listArchives = require('../../../lib/plugins/helper/list_archives').bind(ctx);
 
-  function resetLocals(){
+  function resetLocals() {
     hexo.locals.invalidate();
     ctx.site = hexo.locals.toObject();
   }
 
-  before(function(){
-    return Post.insert([
-      {source: 'foo', slug: 'foo', date: new Date(2014, 1, 2)},
-      {source: 'bar', slug: 'bar', date: new Date(2013, 5, 6)},
-      {source: 'baz', slug: 'baz', date: new Date(2013, 9, 10)},
-      {source: 'boo', slug: 'boo', date: new Date(2013, 5, 8)}
-    ]).then(function(){
-      resetLocals();
-    });
-  });
+  before(() => hexo.init().then(() => Post.insert([
+    {source: 'foo', slug: 'foo', date: new Date(2014, 1, 2)},
+    {source: 'bar', slug: 'bar', date: new Date(2013, 5, 6)},
+    {source: 'baz', slug: 'baz', date: new Date(2013, 9, 10)},
+    {source: 'boo', slug: 'boo', date: new Date(2013, 5, 8)}
+  ])).then(() => {
+    resetLocals();
+  }));
 
-  it('default', function(){
+  it('default', () => {
     var result = listArchives();
 
     result.should.eql([
@@ -44,7 +40,7 @@ describe('list_archives', function(){
     ].join(''));
   });
 
-  it('type: yearly', function(){
+  it('type: yearly', () => {
     var result = listArchives({
       type: 'yearly'
     });
@@ -57,7 +53,7 @@ describe('list_archives', function(){
     ].join(''));
   });
 
-  it('format', function(){
+  it('format', () => {
     var result = listArchives({
       format: 'YYYY/M'
     });
@@ -71,7 +67,7 @@ describe('list_archives', function(){
     ].join(''));
   });
 
-  it('style: false', function(){
+  it('style: false', () => {
     var result = listArchives({
       style: false
     });
@@ -83,7 +79,7 @@ describe('list_archives', function(){
     ].join(', '));
   });
 
-  it('show_count', function(){
+  it('show_count', () => {
     var result = listArchives({
       show_count: false
     });
@@ -97,7 +93,7 @@ describe('list_archives', function(){
     ].join(''));
   });
 
-  it('order', function(){
+  it('order', () => {
     var result = listArchives({
       order: 1
     });
@@ -111,9 +107,9 @@ describe('list_archives', function(){
     ].join(''));
   });
 
-  it('transform', function(){
+  it('transform', () => {
     var result = listArchives({
-      transform: function(str){
+      transform(str) {
         return str.toUpperCase();
       }
     });
@@ -127,7 +123,7 @@ describe('list_archives', function(){
     ].join(''));
   });
 
-  it('separator', function(){
+  it('separator', () => {
     var result = listArchives({
       style: false,
       separator: ''
@@ -140,7 +136,7 @@ describe('list_archives', function(){
     ].join(''));
   });
 
-  it('class', function(){
+  it('class', () => {
     var result = listArchives({
       class: 'test'
     });
@@ -154,7 +150,7 @@ describe('list_archives', function(){
     ].join(''));
   });
 
-  it('page.lang', function(){
+  it('page.lang', () => {
     ctx.page.lang = 'zh-tw';
     var result = listArchives();
     ctx.page.lang = '';
@@ -168,7 +164,7 @@ describe('list_archives', function(){
     ].join(''));
   });
 
-  it('config.language', function(){
+  it('config.language', () => {
     ctx.config.language = 'de';
     var result = listArchives();
     ctx.config.language = '';

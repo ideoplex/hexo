@@ -1,21 +1,19 @@
-'use strict';
-
-var should = require('chai').should();
+var should = require('chai').should(); // eslint-disable-line
 var sinon = require('sinon');
 var pathFn = require('path');
 
-describe('Page', function(){
+describe('Page', () => {
   var Hexo = require('../../../lib/hexo');
   var hexo = new Hexo();
   var Page = hexo.model('Page');
 
-  it('default values', function(){
+  it('default values', () => {
     var now = Date.now();
 
     return Page.insert({
       source: 'foo',
       path: 'bar'
-    }).then(function(data){
+    }).then(data => {
       data.title.should.eql('');
       data.date.valueOf().should.gte(now);
       data.updated.valueOf().should.gte(now);
@@ -23,53 +21,49 @@ describe('Page', function(){
       data.layout.should.eql('page');
       data._content.should.eql('');
       data.raw.should.eql('');
-      data.content.should.eql('');
-      data.excerpt.should.eql('');
-      data.more.should.eql('');
+      should.not.exist(data.content);
+      should.not.exist(data.excerpt);
+      should.not.exist(data.more);
 
       return Page.removeById(data._id);
     });
   });
 
-  it('source - required', function(){
-    var errorCallback = sinon.spy(function(err) {
+  it('source - required', () => {
+    var errorCallback = sinon.spy(err => {
       err.should.have.property('message', '`source` is required!');
     });
 
-    return Page.insert({}).catch(errorCallback).finally(function() {
+    return Page.insert({}).catch(errorCallback).finally(() => {
       errorCallback.calledOnce.should.be.true;
     });
   });
 
-  it('path - required', function(){
-    var errorCallback = sinon.spy(function(err) {
+  it('path - required', () => {
+    var errorCallback = sinon.spy(err => {
       err.should.have.property('message', '`path` is required!');
     });
 
     return Page.insert({
       source: 'foo'
-    }).catch(errorCallback).finally(function() {
+    }).catch(errorCallback).finally(() => {
       errorCallback.calledOnce.should.be.true;
     });
   });
 
-  it('permalink - virtual', function(){
-    return Page.insert({
-      source: 'foo',
-      path: 'bar'
-    }).then(function(data){
-      data.permalink.should.eql(hexo.config.url + '/' + data.path);
-      return Page.removeById(data._id);
-    });
-  });
+  it('permalink - virtual', () => Page.insert({
+    source: 'foo',
+    path: 'bar'
+  }).then(data => {
+    data.permalink.should.eql(hexo.config.url + '/' + data.path);
+    return Page.removeById(data._id);
+  }));
 
-  it('full_source - virtual', function(){
-    return Page.insert({
-      source: 'foo',
-      path: 'bar'
-    }).then(function(data){
-      data.full_source.should.eql(pathFn.join(hexo.source_dir, data.source));
-      return Page.removeById(data._id);
-    });
-  });
+  it('full_source - virtual', () => Page.insert({
+    source: 'foo',
+    path: 'bar'
+  }).then(data => {
+    data.full_source.should.eql(pathFn.join(hexo.source_dir, data.source));
+    return Page.removeById(data._id);
+  }));
 });

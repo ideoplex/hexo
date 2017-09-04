@@ -1,82 +1,95 @@
-'use strict';
-
-var should = require('chai').should();
+var should = require('chai').should(); // eslint-disable-line
 var fs = require('hexo-fs');
 var pathFn = require('path');
 var yaml = require('js-yaml');
 var _ = require('lodash');
+var rewire = require('rewire');
+var sinon = require('sinon');
 
-describe('config', function(){
+describe('config', () => {
   var Hexo = require('../../../lib/hexo');
   var hexo = new Hexo(pathFn.join(__dirname, 'config_test'), {silent: true});
   var config = require('../../../lib/plugins/console/config').bind(hexo);
+  var configModule = rewire('../../../lib/plugins/console/config');
 
-  before(function(){
-    return fs.mkdirs(hexo.base_dir).then(function(){
-      return hexo.init();
+  before(() => fs.mkdirs(hexo.base_dir).then(() => hexo.init()));
+
+  beforeEach(() => fs.writeFile(hexo.config_path, ''));
+
+  after(() => fs.rmdir(hexo.base_dir));
+
+  it('read all config', () => {
+    var spy = sinon.spy();
+
+    return configModule.__with__({
+      console: {
+        log: spy
+      }
+    })(() => configModule.call(hexo, {_: []})).then(() => {
+      spy.args[0][0].should.eql(hexo.config);
     });
   });
 
-  beforeEach(function(){
-    return fs.writeFile(hexo.config_path, '');
+  it('read config', () => {
+    var spy = sinon.spy();
+
+    return configModule.__with__({
+      console: {
+        log: spy
+      }
+    })(() => configModule.call(hexo, {_: ['title']})).then(() => {
+      spy.args[0][0].should.eql(hexo.config.title);
+    });
   });
 
-  after(function(){
-    return fs.rmdir(hexo.base_dir);
+  it('read nested config', () => {
+    var spy = sinon.spy();
+
+    hexo.config.server = {
+      port: 12345
+    };
+
+    return configModule.__with__({
+      console: {
+        log: spy
+      }
+    })(() => configModule.call(hexo, {_: ['server.port']})).then(() => {
+      spy.args[0][0].should.eql(hexo.config.server.port);
+    }).finally(() => {
+      delete hexo.config.server;
+    });
   });
 
-  it('read all config');
-
-  it('read config');
-
-  function writeConfig(){
+  function writeConfig() {
     var args = _.toArray(arguments);
 
-    return config({_: args}).then(function(){
-      return fs.readFile(hexo.config_path);
-    }).then(function(content){
-      return yaml.safeLoad(content);
-    });
+    return config({_: args}).then(() => fs.readFile(hexo.config_path)).then(content => yaml.safeLoad(content));
   }
 
-  it('write config', function(){
-    return writeConfig('title', 'My Blog').then(function(config){
-      config.title.should.eql('My Blog');
-    });
-  });
+  it('write config', () => writeConfig('title', 'My Blog').then(config => {
+    config.title.should.eql('My Blog');
+  }));
 
-  it('write config: number', function(){
-    return writeConfig('server.port', '5000').then(function(config){
-      config.server.port.should.eql(5000);
-    });
-  });
+  it('write config: number', () => writeConfig('server.port', '5000').then(config => {
+    config.server.port.should.eql(5000);
+  }));
 
-  it('write config: false', function(){
-    return writeConfig('post_asset_folder', 'false').then(function(config){
-      config.post_asset_folder.should.be.false;
-    });
-  });
+  it('write config: false', () => writeConfig('post_asset_folder', 'false').then(config => {
+    config.post_asset_folder.should.be.false;
+  }));
 
-  it('write config: true', function(){
-    return writeConfig('post_asset_folder', 'true').then(function(config){
-      config.post_asset_folder.should.be.true;
-    });
-  });
+  it('write config: true', () => writeConfig('post_asset_folder', 'true').then(config => {
+    config.post_asset_folder.should.be.true;
+  }));
 
-  it('write config: null', function(){
-    return writeConfig('language', 'null').then(function(config){
-      should.not.exist(config.language);
-    });
-  });
+  it('write config: null', () => writeConfig('language', 'null').then(config => {
+    should.not.exist(config.language);
+  }));
 
-  it('write config: json', function(){
+  it('write config: json', () => {
     var configPath = hexo.config_path = pathFn.join(hexo.base_dir, '_config.json');
 
-    return fs.writeFile(configPath, '{}').then(function(){
-      return config({_: ['title', 'My Blog']});
-    }).then(function(){
-      return fs.readFile(configPath);
-    }).then(function(content){
+    return fs.writeFile(configPath, '{}').then(() => config({_: ['title', 'My Blog']})).then(() => fs.readFile(configPath)).then(content => {
       var json = JSON.parse(content);
 
       json.title.should.eql('My Blog');
@@ -86,11 +99,7 @@ describe('config', function(){
     });
   });
 
-  it('create config if not exist', function(){
-    return fs.unlink(hexo.config_path).then(function(){
-      return writeConfig('subtitle', 'Hello world');
-    }).then(function(config){
-      config.subtitle.should.eql('Hello world');
-    });
-  });
+  it('create config if not exist', () => fs.unlink(hexo.config_path).then(() => writeConfig('subtitle', 'Hello world')).then(config => {
+    config.subtitle.should.eql('Hello world');
+  }));
 });

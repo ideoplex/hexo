@@ -1,8 +1,6 @@
-'use strict';
+var should = require('chai').should(); // eslint-disable-line
 
-var should = require('chai').should();
-
-describe('feed_tag', function(){
+describe('feed_tag', () => {
   var Hexo = require('../../../lib/hexo');
   var hexo = new Hexo(__dirname);
 
@@ -14,15 +12,15 @@ describe('feed_tag', function(){
 
   var feed = require('../../../lib/plugins/helper/feed_tag').bind(ctx);
 
-  it('path', function(){
-    feed('atom.xml').should.eql('<link rel="alternative" href="/atom.xml" title="Hexo" type="application/atom+xml">');
+  it('path', () => {
+    feed('atom.xml').should.eql('<link rel="alternate" href="/atom.xml" title="Hexo">');
   });
 
-  it('title', function(){
-    feed('atom.xml', {title: 'RSS Feed'}).should.eql('<link rel="alternative" href="/atom.xml" title="RSS Feed" type="application/atom+xml">');
+  it('title', () => {
+    feed('atom.xml', {title: 'RSS Feed'}).should.eql('<link rel="alternate" href="/atom.xml" title="RSS Feed">');
   });
 
-  it('type', function(){
-    feed('rss.xml', {type: 'rss'}).should.eql('<link rel="alternative" href="/rss.xml" title="Hexo" type="application/rss+xml">');
+  it('type', () => {
+    feed('rss.xml', {type: 'rss'}).should.eql('<link rel="alternate" href="/rss.xml" title="Hexo">');
   });
 });

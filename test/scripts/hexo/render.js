@@ -1,12 +1,9 @@
-'use strict';
-
 var fs = require('hexo-fs');
 var pathFn = require('path');
-var Promise = require('bluebird');
 var yaml = require('js-yaml');
 var sinon = require('sinon');
 
-describe('Render', function(){
+describe('Render', () => {
   var Hexo = require('../../../lib/hexo');
   var hexo = new Hexo(pathFn.join(__dirname, 'render_test'));
 
@@ -25,17 +22,11 @@ describe('Render', function(){
   var obj = yaml.load(body);
   var path = pathFn.join(hexo.base_dir, 'test.yml');
 
-  before(function(){
-    return fs.writeFile(path, body).then(function(){
-      return hexo.init();
-    });
-  });
+  before(() => fs.writeFile(path, body).then(() => hexo.init()));
 
-  after(function(){
-    return fs.rmdir(hexo.base_dir);
-  });
+  after(() => fs.rmdir(hexo.base_dir));
 
-  it('isRenderable()', function(){
+  it('isRenderable()', () => {
     hexo.render.isRenderable('test.txt').should.be.false;
 
     // html
@@ -50,7 +41,7 @@ describe('Render', function(){
     hexo.render.isRenderable('test.yaml').should.be.true;
   });
 
-  it('isRenderableSync()', function(){
+  it('isRenderableSync()', () => {
     hexo.render.isRenderableSync('test.txt').should.be.false;
 
     // html
@@ -65,7 +56,7 @@ describe('Render', function(){
     hexo.render.isRenderableSync('test.yaml').should.be.true;
   });
 
-  it('getOutput()', function(){
+  it('getOutput()', () => {
     hexo.render.getOutput('test.txt').should.not.ok;
 
     // html
@@ -80,81 +71,69 @@ describe('Render', function(){
     hexo.render.getOutput('test.yaml').should.eql('json');
   });
 
-  it('render() - path', function(){
-    return hexo.render.render({path: path}).then(function(result){
-      result.should.eql(obj);
-    });
-  });
+  it('render() - path', () => hexo.render.render({path}).then(result => {
+    result.should.eql(obj);
+  }));
 
-  it('render() - text (without engine)', function(){
-    return hexo.render.render({text: body}).then(function(result){
-      result.should.eql(body);
-    });
-  });
+  it('render() - text (without engine)', () => hexo.render.render({text: body}).then(result => {
+    result.should.eql(body);
+  }));
 
-  it('render() - text (with engine)', function(){
-    return hexo.render.render({text: body, engine: 'yaml'}).then(function(result){
-      result.should.eql(obj);
-    });
-  });
+  it('render() - text (with engine)', () => hexo.render.render({text: body, engine: 'yaml'}).then(result => {
+    result.should.eql(obj);
+  }));
 
-  it('render() - no path and text', function(){
-    var errorCallback = sinon.spy(function(err){
+  it('render() - no path and text', () => {
+    var errorCallback = sinon.spy(err => {
       err.should.have.property('message', 'No input file or string!');
-    })
+    });
 
-    return hexo.render.render().catch(errorCallback).finally(function() {
+    return hexo.render.render().catch(errorCallback).finally(() => {
       errorCallback.calledOnce.should.be.true;
     });
   });
 
-  it('render() - options', function(){
-    return hexo.render.render({
-      text: [
-        '<title>{{ title }}</title>',
-        '<body>{{ content }}</body>'
-      ].join('\n'),
-      engine: 'swig'
-    }, {
-      title: 'Hello world',
-      content: 'foobar'
-    }).then(function(result){
-      result.should.eql([
-        '<title>Hello world</title>',
-        '<body>foobar</body>'
-      ].join('\n'));
-    });
-  });
+  it('render() - options', () => hexo.render.render({
+    text: [
+      '<title>{{ title }}</title>',
+      '<body>{{ content }}</body>'
+    ].join('\n'),
+    engine: 'swig'
+  }, {
+    title: 'Hello world',
+    content: 'foobar'
+  }).then(result => {
+    result.should.eql([
+      '<title>Hello world</title>',
+      '<body>foobar</body>'
+    ].join('\n'));
+  }));
 
-  it('render() - toString', function(){
-    return hexo.render.render({
-      text: body,
-      engine: 'yaml',
-      toString: true
-    }).then(function(content){
-      content.should.eql(JSON.stringify(obj));
-    });
-  });
+  it('render() - toString', () => hexo.render.render({
+    text: body,
+    engine: 'yaml',
+    toString: true
+  }).then(content => {
+    content.should.eql(JSON.stringify(obj));
+  }));
 
-  it('render() - custom toString method', function(){
-    return hexo.render.render({
-      text: body,
-      engine: 'yaml',
-      toString: function(data){
-        return JSON.stringify(data, null, '  ');
-      }
-    }).then(function(content){
-      content.should.eql(JSON.stringify(obj, null, '  '));
-    });
-  });
+  it('render() - custom toString method', () => hexo.render.render({
+    text: body,
+    engine: 'yaml',
+    toString(data) {
+      return JSON.stringify(data, null, '  ');
+    }
+  }).then(content => {
+    content.should.eql(JSON.stringify(obj, null, '  '));
+  }));
 
-  it('render() - after_render filter', function(){
+  it('render() - after_render filter', () => {
     var data = {
       text: '  <strong>123456</strong>  ',
       engine: 'swig'
     };
 
-    var filter = sinon.spy(function(result, obj){
+    var filter = sinon.spy((result, obj) => {
       result.should.eql(data.text);
       obj.should.eql(data);
       return result.trim();
@@ -162,7 +141,7 @@ describe('Render', function(){
 
     hexo.extend.filter.register('after_render:html', filter);
 
-    return hexo.render.render(data).then(function(result){
+    return hexo.render.render(data).then(result => {
       filter.calledOnce.should.be.true;
       result.should.eql(data.text.trim());
 
@@ -170,7 +149,7 @@ describe('Render', function(){
     });
   });
 
-  it('render() - after_render filter: use the given output extension if not found', function(){
+  it('render() - after_render filter: use the given output extension if not found', () => {
     var data = {
       text: 'foo',
       engine: 'txt'
@@ -179,28 +158,28 @@ describe('Render', function(){
     var filter = sinon.spy();
     hexo.extend.filter.register('after_render:txt', filter);
 
-    return hexo.render.render(data).then(function(result){
+    return hexo.render.render(data).then(result => {
       filter.calledOnce.should.be.true;
       hexo.extend.filter.unregister('after_render:txt', filter);
     });
   });
 
-  it('render() - onRenderEnd method', function() {
-    var onRenderEnd = sinon.spy(function(result) {
-      return result + 'bar';
-    });
+  it('render() - onRenderEnd method', () => {
+    var onRenderEnd = sinon.spy(result => result + 'bar');
+
     var data = {
       text: 'foo',
       engine: 'txt',
-      onRenderEnd: onRenderEnd
+      onRenderEnd
     };
 
-    var filter = sinon.spy(function(result) {
+    var filter = sinon.spy(result => {
       result.should.eql('foobar');
     });
+
     hexo.extend.filter.register('after_render:txt', filter);
 
-    return hexo.render.render(data).then(function(result){
+    return hexo.render.render(data).then(result => {
       onRenderEnd.calledOnce.should.be.true;
       filter.calledOnce.should.be.true;
 
@@ -208,36 +187,36 @@ describe('Render', function(){
     });
   });
 
-  it('renderSync() - path', function(){
-    var result = hexo.render.renderSync({path: path});
+  it('renderSync() - path', () => {
+    var result = hexo.render.renderSync({path});
     result.should.eql(obj);
   });
 
-  it('renderSync() - text (without engine)', function(){
+  it('renderSync() - text (without engine)', () => {
     var result = hexo.render.renderSync({text: body});
     result.should.eql(body);
   });
 
-  it('renderSync() - text (with engine)', function(){
+  it('renderSync() - text (with engine)', () => {
     var result = hexo.render.renderSync({text: body, engine: 'yaml'});
     result.should.eql(obj);
   });
 
-  it('renderSync() - no path and text', function(){
-    var errorCallback = sinon.spy(function(err) {
+  it('renderSync() - no path and text', () => {
+    var errorCallback = sinon.spy(err => {
       err.should.have.property('message', 'No input file or string!');
     });
 
     try {
       hexo.render.renderSync();
-    } catch (err){
+    } catch (err) {
       errorCallback(err);
     }
 
     errorCallback.calledOnce.should.be.true;
   });
 
-  it('renderSync() - options', function(){
+  it('renderSync() - options', () => {
     var result = hexo.render.renderSync({
       text: [
         '<title>{{ title }}</title>',
@@ -255,7 +234,7 @@ describe('Render', function(){
     ].join('\n'));
   });
 
-  it('renderSync() - toString', function(){
+  it('renderSync() - toString', () => {
     var result = hexo.render.renderSync({
       text: body,
       engine: 'yaml',
@@ -265,11 +244,11 @@ describe('Render', function(){
     result.should.eql(JSON.stringify(obj));
   });
 
-  it('renderSync() - custom toString method', function(){
+  it('renderSync() - custom toString method', () => {
     var result = hexo.render.renderSync({
       text: body,
       engine: 'yaml',
-      toString: function(data){
+      toString(data) {
         return JSON.stringify(data, null, '  ');
       }
     });
@@ -277,13 +256,13 @@ describe('Render', function(){
     result.should.eql(JSON.stringify(obj, null, '  '));
   });
 
-  it('renderSync() - after_render filter', function(){
+  it('renderSync() - after_render filter', () => {
     var data = {
       text: '  <strong>123456</strong>  ',
       engine: 'swig'
     };
 
-    var filter = sinon.spy(function(result, obj){
+    var filter = sinon.spy((result, obj) => {
       result.should.eql(data.text);
       obj.should.eql(data);
       return result.trim();
@@ -299,7 +278,7 @@ describe('Render', function(){
     hexo.extend.filter.unregister('after_render:html', filter);
   });
 
-  it('renderSync() - after_render filter: use the given output extension if not found', function(){
+  it('renderSync() - after_render filter: use the given output extension if not found', () => {
     var data = {
       text: 'foo',
       engine: 'txt'
@@ -308,29 +287,27 @@ describe('Render', function(){
     var filter = sinon.spy();
     hexo.extend.filter.register('after_render:txt', filter);
 
-    var result = hexo.render.renderSync(data);
-
+    hexo.render.renderSync(data);
     filter.calledOnce.should.be.true;
     hexo.extend.filter.unregister('after_render:txt', filter);
   });
 
-  it('renderSync() - onRenderEnd', function(){
-    var onRenderEnd = sinon.spy(function(result) {
-      return result + 'bar';
-    });
+  it('renderSync() - onRenderEnd', () => {
+    var onRenderEnd = sinon.spy(result => result + 'bar');
+
     var data = {
       text: 'foo',
       engine: 'txt',
-      onRenderEnd: onRenderEnd
+      onRenderEnd
     };
 
-    var filter = sinon.spy(function(result) {
+    var filter = sinon.spy(result => {
       result.should.eql('foobar');
     });
+
     hexo.extend.filter.register('after_render:txt', filter);
 
-    var result = hexo.render.renderSync(data);
-
+    hexo.render.renderSync(data);
     onRenderEnd.calledOnce.should.be.true;
     filter.calledOnce.should.be.true;
 
